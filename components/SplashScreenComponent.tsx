@@ -8,6 +8,9 @@ import Animated, {
 } from "react-native-reanimated";
 import { useNavigation } from "@react-navigation/native";
 
+// Import splash screen image
+import splashImage from '@/assets/images/Census2024icon.jpg';
+
 const SplashScreenComponent = () => {
   const navigation = useNavigation();
 
@@ -39,11 +42,14 @@ const SplashScreenComponent = () => {
 
   return (
     <View style={styles.container}>
-      {/* Animated Text with Emojis */}
+      {/* Animated Image */}
       <Animated.View style={animatedStyle}>
-        <Text style={styles.emoji}>🚀</Text>
+        <Image 
+          source={splashImage} // Use your imported image here
+          style={styles.image} // Add styling for the image
+          resizeMode="contain" // Adjust image scaling
+        />
         <Text style={styles.text}>Welcome to PNG's One and Only</Text>
-        <Text style={styles.emoji}>✨🎉</Text>
       </Animated.View>
     </View>
   );
@@ -64,9 +70,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 10,
   },
-  emoji: {
-    fontSize: 64, // Large emoji size
-    textAlign: "center",
+  image: {
+    width: 150, // Set the width of your image
+    height: 150, // Set the height of your image
+    marginBottom: 20, // Space between image and text
   },
 });
 

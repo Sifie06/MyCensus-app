@@ -1,247 +1,224 @@
 import React, { useState, useEffect } from "react";
 import {
   View,
-  TextInput,
   Text,
-  Button,
-  StyleSheet,
-  Platform,
-  FlatList,
-  Alert,
+  TextInput,
   TouchableOpacity,
   ScrollView,
+  StyleSheet,
+  Alert,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import {
-  addPerson,
-  getPersons,
-  updatePerson,
-  deletePerson,
-  initializeDB,
-  Person,
-} from "@/database"; // Import initializeDB
+import { initializeDB, getCensusData, addCensusData, updateCensusData } from '@/database';
 
 const Dashboard = () => {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [gender, setGender] = useState("Select Gender");
-  const [date, setDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [persons, setPersons] = useState<Person[]>([]);
-  const [selectedPerson, setSelectedPerson] = useState<number | null>(null);
-  const [editingPersonId, setEditingPersonId] = useState<number | null>(null); // Track if updating a person
-
-  const onChangeDate = (event: any, selectedDate?: Date) => {
-    const currentDate = selectedDate || date;
-    setShowDatePicker(Platform.OS === "ios");
-    setDate(currentDate);
-  };
-
-  const fetchPersons = async () => {
-    const allPersons = await getPersons();
-    setPersons(allPersons);
-  };
+  const [province, setProvince] = useState("");
+  const [district, setDistrict] = useState("");
+  const [llg, setLlg] = useState("");
+  const [ward, setWard] = useState("");
+  const [censusUnit, setCensusUnit] = useState("");
+  const [censusUnitType, setCensusUnitType] = useState("");
+  const [workloadNo, setWorkloadNo] = useState("");
+  const [locality, setLocality] = useState("");
+  const [section, setSection] = useState("");
+  const [structureRecordNo, setStructureRecordNo] = useState("");
+  const [lot, setLot] = useState("");
+  const [householdNo, setHouseholdNo] = useState("");
+  const [editingPersonId, setEditingPersonId] = useState<number | null>(null);
+  const [censusData, setCensusData] = useState([]);
 
   useEffect(() => {
     const setupDatabase = async () => {
       await initializeDB();
-      fetchPersons();
+      fetchCensusData();
     };
 
     setupDatabase();
   }, []);
 
+  const fetchCensusData = async () => {
+    const allCensusData = await getCensusData();
+    setCensusData(allCensusData);
+  };
+
   const handleSubmit = async () => {
     if (
-      !firstName ||
-      !lastName ||
-      !phone ||
-      !email ||
-      gender === "Select Gender"
+      !province ||
+      !district ||
+      !llg ||
+      !ward ||
+      !censusUnit ||
+      !censusUnitType ||
+      !workloadNo ||
+      !locality ||
+      !section ||
+      !structureRecordNo ||
+      !lot ||
+      !householdNo
     ) {
-      Alert.alert("Error", "Please fill in all fields correctly.");
+      Alert.alert("Error", "Please fill out all fields");
       return;
     }
 
     try {
       if (editingPersonId) {
-        // Update existing person
-        await updatePerson(
+        await updateCensusData(
           editingPersonId,
-          firstName,
-          lastName,
-          phone,
-          email,
-          date.toISOString(),
-          gender
+          province,
+          district,
+          llg,
+          ward,
+          censusUnit,
+          censusUnitType,
+          workloadNo,
+          locality,
+          section,
+          structureRecordNo,
+          lot,
+          householdNo
         );
-        console.log("Person updated successfully");
+        console.log('Census data updated successfully');
       } else {
-        // Add new person
-        const id = await addPerson(
-          firstName,
-          lastName,
-          phone,
-          email,
-          date.toISOString(),
-          gender
+        const id = await addCensusData(
+          province,
+          district,
+          llg,
+          ward,
+          censusUnit,
+          censusUnitType,
+          workloadNo,
+          locality,
+          section,
+          structureRecordNo,
+          lot,
+          householdNo
         );
-        console.log("Person created successfully with ID:", id);
+        console.log('Census data created successfully with ID:', id);
       }
+
       resetForm();
-      fetchPersons(); // Refresh the list
+      fetchCensusData(); // Refresh the list
     } catch (error) {
-      console.error("Error submitting person:", error);
+      console.log("Error submitting census data:", error);
     }
-  };
-
-  const handleDelete = async (id: number) => {
-    try {
-      await deletePerson(id);
-      console.log("Person deleted successfully");
-      fetchPersons(); // Refresh the list after deleting
-    } catch (error) {
-      console.error("Error deleting person:", error);
-    }
-  };
-
-  const handleUpdateClick = (person: Person) => {
-    // Populate the form with the selected person's data
-    setFirstName(person.firstName);
-    setLastName(person.lastName);
-    setPhone(person.phone);
-    setEmail(person.email);
-    setGender(person.gender);
-    setDate(new Date(person.date)); // Assuming dateOfBirth is a string
-    setEditingPersonId(person.id); // Set the ID for updating
   };
 
   const resetForm = () => {
-    // Clear the form after submission or update
-    setFirstName("");
-    setLastName("");
-    setPhone("");
-    setEmail("");
-    setGender("Select Gender");
-    setDate(new Date());
+    setProvince("");
+    setDistrict("");
+    setLlg("");
+    setWard("");
+    setCensusUnit("");
+    setCensusUnitType("");
+    setWorkloadNo("");
+    setLocality("");
+    setSection("");
+    setStructureRecordNo("");
+    setLot("");
+    setHouseholdNo("");
     setEditingPersonId(null); // Reset ID for creating new entries
   };
 
   return (
-    <ScrollView>
-      <View style={styles.container}>
-        <Text style={styles.header}>Data Entry Form</Text>
+    <ScrollView 
+      contentContainerStyle={styles.container} 
+      keyboardShouldPersistTaps="handled"
+    >
+      <View style={styles.header}>
+        <Text style={styles.headerText}>INDICATIVE INFORMATION</Text>
+      </View>
 
+      <View style={styles.formContainer}>
+        <Text style={styles.introText}>Please fill out all the fields</Text>
         <TextInput
           style={styles.input}
-          placeholder="First Name"
-          value={firstName}
-          onChangeText={setFirstName}
-          placeholderTextColor="#888"
+          placeholder="Province"
+          value={province}
+          onChangeText={setProvince}
+          placeholderTextColor="#A9CCE3"
         />
-
         <TextInput
           style={styles.input}
-          placeholder="Last Name"
-          value={lastName}
-          onChangeText={setLastName}
-          placeholderTextColor="#888"
+          placeholder="District"
+          value={district}
+          onChangeText={setDistrict}
+          placeholderTextColor="#A9CCE3"
         />
-
         <TextInput
           style={styles.input}
-          placeholder="Phone"
-          value={phone}
-          onChangeText={setPhone}
-          keyboardType="numeric"
-          placeholderTextColor="#888"
+          placeholder="Local Level Government (LLG)"
+          value={llg}
+          onChangeText={setLlg}
+          placeholderTextColor="#A9CCE3"
         />
-
         <TextInput
           style={styles.input}
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          placeholderTextColor="#888"
+          placeholder="Ward"
+          value={ward}
+          onChangeText={setWard}
+          placeholderTextColor="#A9CCE3"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Census Unit (CU)"
+          value={censusUnit}
+          onChangeText={setCensusUnit}
+          placeholderTextColor="#A9CCE3"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Census Unit Type"
+          value={censusUnitType}
+          onChangeText={setCensusUnitType}
+          placeholderTextColor="#A9CCE3"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Workload No./Enumeration Area"
+          value={workloadNo}
+          onChangeText={setWorkloadNo}
+          placeholderTextColor="#A9CCE3"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Locality"
+          value={locality}
+          onChangeText={setLocality}
+          placeholderTextColor="#A9CCE3"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Section"
+          value={section}
+          onChangeText={setSection}
+          placeholderTextColor="#A9CCE3"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Structure/Record No."
+          value={structureRecordNo}
+          onChangeText={setStructureRecordNo}
+          placeholderTextColor="#A9CCE3"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Lot"
+          value={lot}
+          onChangeText={setLot}
+          placeholderTextColor="#A9CCE3"
+          keyboardType="numeric"  // Ensures only numeric input for Lot
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Household No."
+          value={householdNo}
+          onChangeText={setHouseholdNo}
+          placeholderTextColor="#A9CCE3"
+          keyboardType="numeric"  // Ensures only numeric input for Household No.
         />
 
-        <Picker
-          selectedValue={gender}
-          onValueChange={(itemValue) => setGender(itemValue)}
-          style={styles.picker}
-        >
-          <Picker.Item label={"Select Gender"} value="" />
-          <Picker.Item label="Male" value="male" />
-          <Picker.Item label="Female" value="female" />
-          <Picker.Item label="Other" value="other" />
-        </Picker>
-
-        <View>
-          <Button
-            title="Select Date of Birth"
-            onPress={() => setShowDatePicker(true)}
-          />
-          {showDatePicker && (
-            <DateTimePicker
-              value={date}
-              mode="date"
-              display="default"
-              onChange={onChangeDate}
-            />
-          )}
-          <Text style={styles.dateText}>
-            Date of Birth: {date.toDateString()}
-          </Text>
-        </View>
-
-        <Button
-          title={selectedPerson ? "Update" : "Submit"}
-          onPress={handleSubmit}
-        />
-
-        {/* Table to display records */}
-        <View style={styles.tableContainer}>
-          <View style={styles.tableHeader}>
-            <Text style={styles.tableHeaderText}>First Name</Text>
-            <Text style={styles.tableHeaderText}>Last Name</Text>
-            <Text style={styles.tableHeaderText}>Phone</Text>
-            <Text style={styles.tableHeaderText}>Email</Text>
-            <Text style={styles.tableHeaderText}>Gender</Text>
-            <Text style={styles.tableHeaderText}>Date of Birth</Text>
-            <Text style={styles.tableHeaderText}>Actions</Text>
-          </View>
-          {persons.map((person) => (
-            <View key={person.id} style={styles.tableRow}>
-              <Text style={styles.tableRowText}>{person.firstName}</Text>
-              <Text style={styles.tableRowText}>{person.lastName}</Text>
-              <Text style={styles.tableRowText}>{person.phone}</Text>
-              <Text style={styles.tableRowText}>{person.email}</Text>
-              <Text style={styles.tableRowText}>{person.gender}</Text>
-              <Text style={styles.tableRowText}>
-                {new Date(person.date).toDateString()}
-              </Text>
-              <View style={styles.actionButtons}>
-                <TouchableOpacity
-                  style={styles.updateButton}
-                  onPress={() => handleUpdateClick(person)}
-                >
-                  <Text style={styles.buttonText}>Update</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={() => handleDelete(person.id)}
-                >
-                  <Text style={styles.buttonText}>Delete</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          ))}
-        </View>
+        <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+          <Text style={styles.buttonText}>Save and Continue</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -249,85 +226,61 @@ const Dashboard = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: "#f2f2f2",
-    justifyContent: "center",
+    flexGrow: 1,
+    backgroundColor: "#ADD8E6", // Light blue background color
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
   header: {
+    backgroundColor: "#4A00E0", // Deep blue header background
+    paddingVertical: 20,
+    alignItems: "center",
+    borderBottomLeftRadius: 15,
+    borderBottomRightRadius: 15,
+  },
+  headerText: {
+    color: "white",
     fontSize: 24,
     fontWeight: "bold",
-    color: "#333",
-    textAlign: "center",
-    marginBottom: 30,
   },
-  input: {
-    height: 50,
-    borderColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    marginBottom: 20,
-    backgroundColor: "#fff",
+  formContainer: {
+    backgroundColor: "white",
+    marginTop: 20,
+    borderRadius: 10,
+    padding: 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,
   },
-  picker: {
-    height: 50,
-    borderColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 12,
-    backgroundColor: "#fff",
-    marginBottom: 20,
-  },
-  dateText: {
-    marginTop: 10,
+  introText: {
+    color: "#3498DB", // Blue intro text
     marginBottom: 20,
     fontSize: 16,
-    color: "#666",
+    fontWeight: "bold",
   },
-  personContainer: {
-    marginBottom: 20,
+  input: {
+    backgroundColor: "white",
+    borderColor: "#A9CCE3", // Light blue border
+    borderWidth: 1,
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
+    fontSize: 16,
   },
-  tableContainer: {
+  button: {
+    backgroundColor: "#00C2FF", // Cyan button color
+    padding: 15,
+    borderRadius: 5,
+    alignItems: "center",
     marginTop: 20,
   },
-  tableHeader: {
-    flexDirection: "row",
-    backgroundColor: "#f1f1f1",
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-  },
-  tableHeaderText: {
-    flex: 1,
+  buttonText: {
+    color: "white",
+    fontSize: 16,
     fontWeight: "bold",
-    textAlign: "center",
   },
-  tableRow: {
-    flexDirection: "row",
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-  },
-  tableRowText: {
-    flex: 1,
-    textAlign: "center",
-  },
-  actionButtons: {
-    flexDirection: "row",
-  },
-  updateButton: {
-    backgroundColor: "#4CAF50",
-    padding: 5,
-    borderRadius: 5,
-    marginRight: 5,
-  },
-  deleteButton: { backgroundColor: "#F44336", padding: 5, borderRadius: 5 },
-  buttonText: { color: "#fff", fontWeight: "bold" },
 });
 
 export default Dashboard;
